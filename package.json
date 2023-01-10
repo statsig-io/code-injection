@@ -1,5 +1,5 @@
 {
-  "name": "code-injection",
+  "name": "statsig-code-injection",
   "version": "0.0.1",
   "description": "Code injection library helps you run custom code in your landing page based on a Statsig experiment",
   "main": "dist/index.js",
@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/statsig-io/code-injection/issues"
   },
-  "homepage": "https://github.com/statsig-io/code-injection#readme"
+  "homepage": "https://github.com/statsig-io/code-injection#readme",
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  }
 }
