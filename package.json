@@ -1,0 +1,21 @@
+{
+  "name": "code-injection",
+  "version": "0.0.1",
+  "description": "Code injection library helps you run custom code in your landing page based on a Statsig experiment",
+  "main": "dist/index.js",
+  "jsdelivr": "dist/index.js",
+  "scripts": {
+    "prepare": "rm -rf dist/ && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/statsig-io/code-injection.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/statsig-io/code-injection/issues"
+  },
+  "homepage": "https://github.com/statsig-io/code-injection#readme"
+}
