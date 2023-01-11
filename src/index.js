@@ -26,7 +26,14 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
       const s = document.createElement('style');
       s.innerText = stylesheetText
       document.head.appendChild(s);
-    }
+    },
+    domReady: fn => {
+      if (document.readyState !== 'loading') {
+        fn();
+      } else {
+        document.addEventListener('DOMContentLoaded', fn);
+      }
+    }    
   },
 
   _processPendingInjections: function() {
@@ -86,7 +93,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     try {
       returnVal = eval(jsString);
     } catch(err) {
-      StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Error running ${jsString}`, err);
+      // Too noisy: StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Error running ${jsString}`, err);
     }      
     return returnVal;
   },
@@ -128,6 +135,11 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
             StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Met interval_condition ${JSON.stringify(triggerCondition)}`);
             resolve();
           });
+        }));
+      }
+      else if(triggerType === 'page_lifecycle' && triggerCondition === 'dom_ready') {
+        allTriggerPromises.push(new Promise((resolve, reject) => {
+          StatsigCodeHelper.Utilities.domReady(resolve);
         }));
       }
       else {
@@ -174,7 +186,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
       }
       console.log(`URL condition met for ${key}: ${url}, evaluating triggers...`);                  
       StatsigCodeHelper._awaitTriggersDoCallback(triggers, () => {
-        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Activating test: ${key}`);
+        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Activating test: ${key} with triggers`, triggers);
         StatsigCodeHelper._runExperimentCode(key);
       });
     }         
