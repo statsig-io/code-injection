@@ -1,15 +1,22 @@
 <html>
   <head>
-    <script src="../src/index.js?apikey=client-9D5ryuTcX31kzG9bw7YcboEbMCQy9LvO1Zg3reaPDBr"></script>
+    <script src="../src/index.js?apikey=client-9D5ryuTcX31kzG9bw7YcboEbMCQy9LvO1Zg3reaPDBr&configkey=web_experiments"></script>
     <script>
-      StatsigCodeHelper.injectDynamicCode('dynamic_code_injection_experiment');
-    </script>
+      // tests out the "dynamic js" condition
+      setTimeout(function() {
+          window.dataLayer = {products: []};
+      }, 1000);  
+
+      // tests out the "element_exists" condition
+      setTimeout(function() {            
+          document.querySelector('#product-img').innerHTML = `<img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" />`;
+      }, 2000);                
+  </script>
   </head>
   <body>
-    Hello World
-
-    <div>
-      <a href="#" onclick="window.localStorage.removeItem('STATSIG_LOCAL_STORAGE_STABLE_ID')">Clear User</a>
-    </div>
+    <h1>Blue Bicycle $450</h1>
+    <p>The test will activate once (a) window.dataLayer.products exists and (b) once selector "img.pdp" exists.</p>    
+    <div id="product-img"></div>    
+    <button onclick="localStorage.removeItem('STATSIG_LOCAL_STORAGE_INTERNAL_STORE_V4');localStorage.removeItem('STATSIG_LOCAL_STORAGE_STABLE_ID');self.location.reload();">Rebucket</button>    
   </body>
 </html>
