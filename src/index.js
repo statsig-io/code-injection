@@ -21,6 +21,14 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     }
   },
 
+  Utilities: {
+    addStyles: stylesheetText => {
+      const s = document.createElement('style');
+      s.innerText = stylesheetText
+      document.head.appendChild(s);
+    }
+  },
+
   _processPendingInjections: function() {
     while (StatsigCodeHelper._pendingInjections.length) {
       const lambda = StatsigCodeHelper._pendingInjections.pop();
