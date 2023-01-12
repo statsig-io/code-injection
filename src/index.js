@@ -33,7 +33,68 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
       } else {
         document.addEventListener('DOMContentLoaded', fn);
       }
-    }    
+    },
+    observer: (function() {
+      let observer,
+          changes = {};
+    
+      const applyChange = function(changeElt, cb) {     
+        observer.disconnect();
+        cb(changeElt);
+        bindMutationObserver();  
+      }
+    
+      function domReady(fn) {
+        if (document.readyState !== 'loading') {
+          fn();
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      }
+    
+      const bindMutationObserver = function(selector) {      
+        // Create an observer instance to execute when mutations are observed
+        observer = new MutationObserver(function (mutationsList) {
+          const selectorList = Object.keys(changes);
+          mutationsList.forEach(mutation => {
+            selectorList.forEach(function(selector) {
+              if(mutation.target && mutation.target.matches && mutation.target.matches(selector)) {              
+                applyChange(mutation.target, changes[selector]);          
+              }
+              else if(mutation.target && mutation.target.nodeName !== '#text') {
+                var mutationTargetChild = mutation.target.querySelectorAll(selector);
+                mutationTargetChild.forEach(function(childEltMutated) {
+                  applyChange(childEltMutated, changes[selector]);
+                });
+              }
+            });
+          });
+        });  
+    
+        observer.observe(document.documentElement, {
+          // attributes: true,
+          // attributeOldValue: true,
+          characterData: true,
+          childList: true,
+          subtree: true,        
+          characterDataOldValue: false
+        });
+      }
+    
+      var watch = function(selector, cb) {
+        changes[selector] = cb;
+        if(!observer) bindMutationObserver();
+        // apply changes if elements already exist
+        domReady(function() {
+          document.querySelectorAll(selector).forEach(function(existingElt) {
+            applyChange(existingElt, cb);
+          });
+        });      
+      }
+    
+      return watch;
+    
+    })()  
   },
 
   _processPendingInjections: function() {
@@ -66,28 +127,6 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     }
   },
 
-    /**
-   * Dispatches window event 
-   */
-  _bindGlobalMutationObserver: function() {
-    const observer = new MutationObserver(function (mutationsList) {
-      const mutations = mutationsList.map(m => {
-        return { type: m.type, target: m.target }
-      });
-      // console.log(mutations);
-      const event = new Event('MutationEvent');
-      window.dispatchEvent(event);
-    });  
-    observer.observe(document.documentElement, {
-      attributes: true,        
-      attributeOldValue: true,
-      characterData: true,
-      childList: true,
-      subtree: true,        
-      characterDataOldValue: true
-    });    
-  },
-
   _evalString: function(jsString)  {
     let returnVal;
     try {
@@ -109,23 +148,24 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     }
 
     for(const [triggerType, triggerCondition] of iterableTriggers) {
-      if(triggerType === 'element_exists') {
-        let elementExistsPromise;
-        if(document.querySelector(triggerCondition)) {
-          elementExistsPromise = Promise.resolve();
-        }
-        else {
-          elementExistsPromise = new Promise((resolve, reject) => {
-            const onDOMMutate = () => {
-              if(document.querySelector(triggerCondition)) {
-                window.removeEventListener('MutationEvent', onDOMMutate);
-                resolve();     
-              }
+      if(triggerType === 'element_exists') {     
+        const settings = {
+          selector: typeof triggerCondition === 'object' ? triggerCondition.selector: triggerCondition,
+          continuous: typeof triggerCondition === 'object' ? triggerCondition.continuous: false
+        };
+        allTriggerPromises.push(new Promise((resolve, reject) => {
+          StatsigCodeHelper.Utilities.observer(settings.selector, (elt) => {                         
+            if(elt.dataset.statsigChangeApplied && settings.continuous) {
+              // invoking callback when using {observe: true}
+              callback();
+            }            
+            else if(!elt.dataset.statsigChangeApplied) {
+              // the first detection of this select will get here
+              elt.dataset.statsigChangeApplied = true;
+              resolve();
             }
-            window.addEventListener('MutationEvent', onDOMMutate, false);          
-          }); 
-        }
-        allTriggerPromises.push(elementExistsPromise);       
+          });
+        }));       
       }
       else if(triggerType === 'interval_condition') {
         allTriggerPromises.push(new Promise((resolve, reject) => {
@@ -175,7 +215,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     const webConfig = statsig.getConfig(configKey);
     const webExperiments = webConfig.get('experiments', []);
     const utilFncString = webConfig.get('util', '');
-    if(webExperiments.length) StatsigCodeHelper._bindGlobalMutationObserver();
+
     for(const experiment of webExperiments) {
       const {key, triggers = {}, url} = experiment;
       
