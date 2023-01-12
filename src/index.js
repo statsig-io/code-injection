@@ -11,7 +11,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     script.addEventListener('load', callback);
     document.head.appendChild(script);
   },
-
+  _memoizedExperimentCode: {},
   injectDynamicCode: function(experimentId) {
     StatsigCodeHelper._pendingInjections.push(
       () => StatsigCodeHelper._runExperimentCode(experimentId)
@@ -113,25 +113,28 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     }
   },
 
+  /**
+   * Will only log an exposure on the first call
+   * For subsequent calls, it will just run the variation code in memory
+   */
   _runExperimentCode: function(experimentId) {
+    if(StatsigCodeHelper._memoizedExperimentCode[experimentId]) {
+      return StatsigCodeHelper._evalString(StatsigCodeHelper._memoizedExperimentCode[experimentId]);
+    }
     const config = statsig.getExperiment(experimentId);
     let code = config.get(StatsigCodeHelper._CODE_PARAM, null);
-    if (code) {
-      eval(code);
-      return;
-    }
-    const codeConfig = config.get('codeConfig', null);
-    const codeKey = config.get('codeKey', null);
-    if (codeConfig && codeKey) {
-      const codeDynamicConfig = statsig.getConfig(codeConfig);
-      if (codeDynamicConfig) {
-        code = codeDynamicConfig.get(codeKey, null);
-        if (code) {
-          eval(code);
-          return;
+    if (!code) {
+      const codeConfig = config.get('codeConfig', null);
+      const codeKey = config.get('codeKey', null);
+      if (codeConfig && codeKey) {
+        const codeDynamicConfig = statsig.getConfig(codeConfig);
+        if (codeDynamicConfig) {
+          code = codeDynamicConfig.get(codeKey, null);
         }
       }
     }
+    StatsigCodeHelper._memoizedExperimentCode[experimentId] = code;
+    return StatsigCodeHelper._evalString(code);
   },
 
   _evalString: function(jsString)  {
@@ -239,9 +242,9 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
         console.log(`[Statsig Exp "${key}"] URL condition not met (${url}), skipping...`);      
         continue;
       }
-      console.log(`[Statsig Exp "${key}"] URL condition met (${url}), evaluating triggers...`);
+      console.log(`[Statsig Exp "${key}"] URL condition met (${url}), evaluating triggers...`, triggers);
       StatsigCodeHelper._awaitTriggersDoCallback(triggers, () => {
-        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${key}"] Activating with triggers`, triggers);
+        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${key}"] Running variation code`);
         StatsigCodeHelper._runExperimentCode(key);
       }, key);
     }         
