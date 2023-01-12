@@ -2,6 +2,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
   _CODE_PARAM: 'code',
   _CONSOLE_DEBUG: localStorage.getItem('DEBUG_StatsigCodeHelper'),
   _pendingInjections: [],
+  _memoizedExperimentCode: {},
   _addStatsigSdk: function(apiKey, nonce, callback) {
     const script = document.createElement('script');
     if (nonce) {
@@ -11,7 +12,6 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     script.addEventListener('load', callback);
     document.head.appendChild(script);
   },
-  _memoizedExperimentCode: {},
   injectDynamicCode: function(experimentId) {
     StatsigCodeHelper._pendingInjections.push(
       () => StatsigCodeHelper._runExperimentCode(experimentId)
