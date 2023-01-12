@@ -10,24 +10,24 @@
       // tests out the "element_exists" condition
       setTimeout(function() {            
           document.querySelector('#product-img').innerHTML = `<img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" style="width:100px;" />`;
+          document.querySelector('#top').innerHTML += `<p><button onclick="addBike();">Add another bicycle image</button></p>`;
       }, 2000);    
       
       var addBike = function() {
-        var d=document.createElement("div");d.innerHTML='<img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" style="width:100px;" />',document.querySelector("#product-img").appendChild(d.children[0]);        
+        var d=document.createElement("div");d.innerHTML='<img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" style="width:100px;" />',document.querySelector("#product-img").appendChild(d.children[0]);
       }
     </script>
     <style>* {box-sizing: border-box;}</style>
   </head>
   <body>
-    <h1>Blue Bicycle $450</h1>
-    <p>
-      <strong>Dynamic Example</strong><br />
-      The test will activate once (a) window.dataLayer.products exists and (b) once selector "img.pdp" exists.
-      <br /><a href="test-static.html">Click here for static example.</a>
-    </p>    
-    <p>
-      <button onclick="addBike();">Add another bicycle image</button>
-    </p>
+    <div id="top">
+      <h1>Blue Bicycle $450</h1>
+      <p>
+        <strong>Dynamic Example</strong><br />
+        The test will activate once (a) window.dataLayer.products exists and (b) once selector "img.pdp" exists.
+        <br /><a href="test-static.html">Click here for static example.</a>
+      </p>          
+    </div>
     <div id="product-img"></div>    
   </body>
 </html>

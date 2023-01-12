@@ -3,15 +3,21 @@
     <script src="../src/index.js?apikey=client-9D5ryuTcX31kzG9bw7YcboEbMCQy9LvO1Zg3reaPDBr&configkey=web_experiments"></script>
     <script>
     window.dataLayer = {products: [1,2,3]};
+    var addBike = function() {
+      var d=document.createElement("div");d.innerHTML='<img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" style="width:100px;" />',document.querySelector("#product-img").appendChild(d.children[0]);
+    }
     </script>
   </head>
   <body>
-    <h1>Blue Bicycle $450</h1>
-    <p>
-      <strong>Static Example</strong><br />
-      The test should be activated immediately based on (a) window.dataLayer.products exists and (b) once selector "img.pdp" exists. 
-      <br /><a href="test.html">Click here for dynamic example.</a>
-    </p> 
+    <div id="top">
+      <h1>Blue Bicycle $450</h1>
+      <p>
+        <strong>Static Example</strong><br />
+        The test should be activated immediately based on (a) window.dataLayer.products exists and (b) once selector "img.pdp" exists. 
+        <br /><a href="test.html">Click here for dynamic example.</a>
+      </p> 
+      <p><button onclick="addBike();">Add another bicycle image</button></p>
+    </div>
     <div id="product-img">
       <img class="pdp" src="https://cdn.shopify.com/s/files/1/0232/3305/products/JMO_0233_large.jpg?v=1569126331" style="width:100px;" />
     </div>    
