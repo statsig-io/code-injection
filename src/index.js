@@ -34,6 +34,13 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
         document.addEventListener('DOMContentLoaded', fn);
       }
     },
+    windowLoad: fn => {
+      if (document.readyState === 'complete') {
+        fn();
+      } else {
+        window.addEventListener("load", fn);
+      }      
+    },
     observer: (function() {
       let observer,
           changes = {};
@@ -137,12 +144,12 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
     return returnVal;
   },
 
-  _awaitTriggersDoCallback: function(triggers, callback) {
+  _awaitTriggersDoCallback: function(triggers, callback, experimentKey) {
     const iterableTriggers = Object.entries(triggers),
           allTriggerPromises = [];
 
     if(!iterableTriggers.length) {
-      StatsigCodeHelper._CONSOLE_DEBUG && console.log('No triggers, activating...');
+      StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${experimentKey}"] No triggers, activating...`);
       callback();
       return;
     }
@@ -172,19 +179,27 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
           StatsigCodeHelper._intervalUntilTrueOrTimeout(() => {
             return !!StatsigCodeHelper._evalString(triggerCondition.js);
           }, parseInt(triggerCondition.js) || 5000).then(() => {
-            StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Met interval_condition ${JSON.stringify(triggerCondition)}`);
+            StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${experimentKey}"] Met interval_condition ${JSON.stringify(triggerCondition)}`);
             resolve();
           });
         }));
       }
-      else if(triggerType === 'page_lifecycle' && triggerCondition === 'dom_ready') {
+      else if(triggerType === 'pageload_phase') {
         allTriggerPromises.push(new Promise((resolve, reject) => {
-          StatsigCodeHelper.Utilities.domReady(resolve);
+          if(triggerCondition === 'dom_ready') {
+            StatsigCodeHelper.Utilities.domReady(resolve);
+          }
+          else if(triggerCondition === 'window_onload') {
+            StatsigCodeHelper.Utilities.windowLoad(resolve);
+          }
+          else {
+            StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${experimentKey}"] Invalid ${pageload_phase}. Value must be dom_ready or window_onload. Test will not activate.`);
+          }
         }));
       }
       else {
         // if there's an entry in the triggers array 
-        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Unknown condition: '${triggerType}' = '${triggerCondition}'`);
+        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${experimentKey}"] Unknown condition: '${triggerType}' = '${triggerCondition}'`);
       }
     }
     // only attempt to activate if all triggers were added to pending promises array
@@ -192,7 +207,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
       Promise.all(allTriggerPromises).then(callback);
     }
     else {
-      StatsigCodeHelper._CONSOLE_DEBUG && console.log('Skipping activation logic because of unknown triggers');
+      StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${experimentKey}"] Skipping activation because of unknown triggers`);
     }
   },
 
@@ -221,14 +236,14 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
       
       // check url before the triggers
       if(url && !window.location.pathname.match(new RegExp(url))) {
-        console.log(`URL condition not met for ${key}: ${url}, skipping...`);      
+        console.log(`[Statsig Exp "${key}"] URL condition not met (${url}), skipping...`);      
         continue;
       }
-      console.log(`URL condition met for ${key}: ${url}, evaluating triggers...`);                  
+      console.log(`[Statsig Exp "${key}"] URL condition met (${url}), evaluating triggers...`);
       StatsigCodeHelper._awaitTriggersDoCallback(triggers, () => {
-        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`Activating test: ${key} with triggers`, triggers);
+        StatsigCodeHelper._CONSOLE_DEBUG && console.log(`[Statsig Exp "${key}"] Activating with triggers`, triggers);
         StatsigCodeHelper._runExperimentCode(key);
-      });
+      }, key);
     }         
   },
 
