@@ -51,14 +51,6 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
         bindMutationObserver();  
       }
     
-      function domReady(fn) {
-        if (document.readyState !== 'loading') {
-          fn();
-        } else {
-          document.addEventListener('DOMContentLoaded', fn);
-        }
-      }
-    
       const bindMutationObserver = function(selector) {      
         // Create an observer instance to execute when mutations are observed
         observer = new MutationObserver(function (mutationsList) {
@@ -92,7 +84,7 @@ window["StatsigCodeHelper"] = window["StatsigCodeHelper"] || {
         changes[selector] = cb;
         if(!observer) bindMutationObserver();
         // apply changes if elements already exist
-        domReady(function() {
+        StatsigCodeHelper.Utilities.domReady(function() {
           document.querySelectorAll(selector).forEach(function(existingElt) {
             applyChange(existingElt, cb);
           });
