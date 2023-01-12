@@ -55,7 +55,7 @@ Add this helper script to the `<head>` of your webpage
 | triggers.element_exists  | object or string | This condition is for activating a test based on an element being pressent on a webpage. Note: You can provide a `selector` string as the value, which will do a one-time check for the element and then activate and run the experiment code. | no   |
 | triggers.element_exists.selector  | string | The element selector to look for. | yes   |
 | triggers.element_exists.continuous  | bool | Enabling this will continuously run the experiment code. When disabled, the experiment code will run only once | yes   |
-| triggers.pageload_stage  | string | Options include `dom_ready` and `window_onload`. This will ensure that experiment and it's code doesn't run until A certain stage during pageload. `dom_ready` is will be when all nodes are written to DOM and it's ready to be modified. `window_onload` is later in the lifecycle, once all external assets have also been loaded.  | no   |
+| triggers.pageload_phase  | string (`dom_ready`, `window_onload`) | This will ensure that experiment and it's code doesn't run until the specified phase during pageload. `dom_ready` is will be when all nodes are written to DOM and it's ready to be modified. `window_onload` is later in the lifecycle, once all external assets have also been loaded.  | no   |
 
 #### Experiment Parameters
 Each experiment included in the Dynamic Config above must contain either a `code` parameter or `codeConfig` + `codeKey` parametes. 
